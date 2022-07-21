@@ -40,96 +40,33 @@ class _SmartFlowerOverviewState extends State {
 
   final _topic = 'my/topic';
 
-  late MqttBrowserClient _client;
-  LiveInfo _liveInfo = Get.put(LiveInfo());
+  late MQTTManager mqttManager;
+  LiveInfo liveInfo = Get.put(LiveInfo());
 
-  Future<void> connectAndSub(
-      String username, String password, String topic) async {
-    print(
-        "MQTT Client Connecting to: $_host:$_port  $_username@$_password ...");
-
-    // 1: connect to MQTT broker
+  void onNewData(String data) {
     try {
-      var connResult = await _client.connect(username, password);
-      if (connResult?.state != MqttConnectionState.connected) {
-        print("error: couldnt connect");
+      // decode incoming data (JSON)
+      var dataMap = jsonDecode(data);
+      num? currentPerformance = dataMap['current_performance'];
 
-        // DO NOT CONTINUE
-        return;
+      if (currentPerformance != null) {
+        // set new value for 'current_performance'
+        // and refresh the UI to display the new data.
+        liveInfo.setCurrentPerformance(currentPerformance);
+        setState(() {});
       }
     } catch (e) {
-      print("couldnt connect: $e");
-
-      // DO NOT CONTINUE
-      return;
+      print("error: couldnt jsonDecode incoming msg: $e");
     }
-
-    // 2: subscribe to topic
-    _client.subscribe(topic, MqttQos.atLeastOnce);
-
-    // 3: handle new incoming data
-    _client.updates!.listen((events) {
-      for (var msg in events) {
-        print("NEW DATA RECEIVED FROM: ${msg.topic}");
-        var mqttMsg = msg.payload as MqttPublishMessage;
-        var data =
-            MqttPublishPayload.bytesToStringAsString(mqttMsg.payload.message);
-
-        try {
-          // decode incoming data (JSON)
-          var dataMap = jsonDecode(data);
-          num? currentPerformance = dataMap['current_performance'];
-
-          if (currentPerformance != null) {
-            // set new value for 'current_performance'
-            // and refresh the UI to display the new data.
-            _liveInfo.setCurrentPerformance(currentPerformance);
-            setState(() {});
-          }
-        } catch (e) {
-          print("error: couldnt jsonDecode incoming msg: $e");
-        }
-      }
-    });
   }
 
   @override
   void initState() {
     _scrollController.addListener(_scrollListener);
 
-    /** REQUIRED **/
-    _client = MqttBrowserClient.withPort(_host, _clientId, _port);
+    mqttManager = MQTTManager(host: _host, port: _port, clientId: _clientId);
 
-    /** OPTIONAL **/
-    _client.onSubscribed = (String? topic) {
-      print("Subscribed to topic: $topic");
-    };
-
-    /** OPTIONAL **/
-    _client.onUnsubscribed = (String? topic) {
-      print("Unsubscribed from topic: $topic");
-    };
-
-    /** OPTIONAL **/
-    _client.onConnected = () {
-      print("Connected successfully to ${_client.server}");
-    };
-
-    /** OPTIONAL **/
-    _client.onDisconnected = () {
-      print("Disconnected from ${_client.server}");
-    };
-
-    /** OPTIONAL **/
-    _client.onSubscribeFail = (String? topic) {
-      print("Failed to subscribe to topic: $topic");
-    };
-
-    /** MAYBE REQUIRED, ACCORDING TO THE BROKER SETTINGS **/
-    _client.websocketProtocols = [];
-
-    /** CONNECT AND SUBSCRIBE **/
-    connectAndSub(_username, _password, _topic);
+    mqttManager.connectAndSub(_username, _password, _topic, onNewData);
 
     super.initState();
   }
@@ -137,7 +74,7 @@ class _SmartFlowerOverviewState extends State {
   @override
   void dispose() {
     /** NOT REQUIRED, BUT RECOMMENDED FOR GOOD PERFORMANCE **/
-    _client.disconnect();
+    mqttManager.disconnect();
 
     super.dispose();
   }
