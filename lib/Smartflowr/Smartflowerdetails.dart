@@ -5,6 +5,8 @@ import 'package:flutter_application_1/HomePage-Wiedget/Responsive.dart';
 import 'package:flutter_application_1/HomePage-Wiedget/Titelwidget.dart';
 
 import 'package:flutter_application_1/Smartflowr/GaugeWidget.dart';
+import 'package:flutter_application_1/live_info.dart';
+import 'package:get/get.dart';
 
 import '../Farbe.dart';
 
@@ -16,6 +18,9 @@ class SmartFlowerdetails extends StatelessWidget {
 
   final Size screenSize;
   String s = "ss";
+
+  LiveInfo liveInfo = Get.put(LiveInfo());
+
   @override
   Widget build(BuildContext context) {
     double cardWidth = (MediaQuery.of(context).size.width - 40) / 2;
@@ -30,7 +35,7 @@ class SmartFlowerdetails extends StatelessWidget {
               SizedBox(height: 10),
               Column(
                 children: [
-                  SmartFlowerLeistung(),
+                  SmartFlowerLeistung(liveInfo.currentPerformance.toDouble()),
                   buildEnergy(),
                   buildjahre(),
                   buildETotalCard(),
@@ -72,7 +77,8 @@ class SmartFlowerdetails extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SmartFlowerLeistung(),
+                      SmartFlowerLeistung(
+                          liveInfo.currentPerformance.toDouble()),
                     ],
                   ),
                   Row(
@@ -98,9 +104,7 @@ class SmartFlowerdetails extends StatelessWidget {
   }
 }
 
-dynamic SmartFlowerLeistung() {
-  double _Value = 1560;
-  int Prozentwert = 15;
+dynamic SmartFlowerLeistung(double currentPerformance) {
   return Padding(
     padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
     child: Card(
@@ -121,7 +125,7 @@ dynamic SmartFlowerLeistung() {
             ),
           ),
         ),
-        GaugeWidget(),
+        GaugeWidget(value: currentPerformance),
         Divider(
           indent: 16,
           endIndent: 16,
@@ -130,7 +134,7 @@ dynamic SmartFlowerLeistung() {
         ),
         Padding(
             padding: EdgeInsets.all(16),
-            child: Text("Auslastung: $Prozentwert %",
+            child: Text("Auslastung:  %",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)))
       ]),
     ),

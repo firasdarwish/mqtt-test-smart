@@ -1,18 +1,21 @@
 // ignore_for_file: sized_box_for_whitespace, non_constant_identifier_names, unused_local_variable, prefer_const_constructors, file_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/live_info.dart';
+import 'package:get/get.dart';
 
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class GaugeWidget extends StatelessWidget {
   const GaugeWidget({
     Key? key,
+    required this.value
   }) : super(key: key);
+
+  final double value;
 
   @override
   Widget build(BuildContext context) {
-    double _Value = 1560;
-    int Prozentwert = 15;
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
       child: SfRadialGauge(
@@ -25,7 +28,7 @@ class GaugeWidget extends StatelessWidget {
             maximum: 3001,
             pointers: <GaugePointer>[
               NeedlePointer(
-                value: _Value,
+                value: value,
                 enableAnimation: true,
               )
             ],
@@ -49,7 +52,7 @@ class GaugeWidget extends StatelessWidget {
             annotations: <GaugeAnnotation>[
               GaugeAnnotation(
                 widget: Text(
-                  '$_Value W',
+                  '$value W',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 positionFactor: 0.5,
